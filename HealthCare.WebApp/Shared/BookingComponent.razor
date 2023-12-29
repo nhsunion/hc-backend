@@ -1,0 +1,31 @@
+﻿@using HealthCare.Core.Models;
+@inject BookingService BookingService
+
+<h3>Book an Appointment</h3>
+
+<input type="datetime-local" @bind="selectedTime" />
+<input type="text" placeholder="Patient Name" @bind="patientName" />
+<select @bind="selectedService">
+    <option value="General Checkup">General Checkup</option>
+    <option value="Vaccination">Vaccination</option>
+  
+</select>
+<button @onclick="BookAppointment">Book</button>
+
+@code {
+    private DateTime selectedTime;
+    private string patientName;
+    private string selectedService;
+
+    private void BookAppointment()
+    {
+        var newBooking = new Booking
+        {
+            Time = selectedTime,
+            PatientName = patientName,
+            Service = selectedService
+        };
+
+        BookingService.AddBooking(newBooking);
+    }
+}
