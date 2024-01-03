@@ -1,3 +1,5 @@
+using hc_backend.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace hc_backend
 {
@@ -7,10 +9,20 @@ namespace hc_backend
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Get the environment name
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            // Add the environment-specific appsettings file to the configuration
+
+            // $env:ASPNETCORE_ENVIRONMENT="John" (windows) after creating appsettings.John.json
+            builder.Configuration.AddJsonFile($"appsettings.{envName}.json", optional: true);
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+            // Get the connection string from the configuration
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+            builder.Services.AddDbContext<AppDbcontext>(options => options.UseNpgsql(connectionString));
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -26,7 +38,6 @@ namespace hc_backend
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
