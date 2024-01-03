@@ -13,6 +13,8 @@ namespace hc_backend
             var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             // Add the environment-specific appsettings file to the configuration
+
+            // $env:ASPNETCORE_ENVIRONMENT="John" (windows) after creating appsettings.John.json
             builder.Configuration.AddJsonFile($"appsettings.{envName}.json", optional: true);
 
             builder.Services.AddControllers();
