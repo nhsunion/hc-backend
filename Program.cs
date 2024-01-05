@@ -14,7 +14,7 @@ namespace hc_backend
 
             // Add the environment-specific appsettings file to the configuration
 
-            // $env:ASPNETCORE_ENVIRONMENT="John" (windows) after creating appsettings.John.json
+            // $env:ASPNETCORE_ENVIRONMENT="Admin" (windows) after creating appsettings.Admin.json
             builder.Configuration.AddJsonFile($"appsettings.{envName}.json", optional: true);
 
             builder.Services.AddControllers();
@@ -28,8 +28,8 @@ namespace hc_backend
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            // If the environmentName(launchSettings.json) is "Admin", enable Swagger 
+            if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Admin")
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
