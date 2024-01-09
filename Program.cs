@@ -27,6 +27,8 @@ namespace hc_backend
                     };
                 });
 
+            builder.Services.AddScoped<AuthService>();
+
             // Get the environment name
             var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
@@ -54,6 +56,8 @@ namespace hc_backend
             }
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
