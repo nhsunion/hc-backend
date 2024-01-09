@@ -34,23 +34,9 @@ namespace hc_backend.Controllers
             _db.Patients.Add(patient);
             await _db.SaveChangesAsync();
 
-            var token = _authService.GenerateToken(patient);
-            return Ok(new {patient, token});
+            return Ok(patient);
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult> CreateProvider(Provider provider)
-        {
-            var providers = await _db.Providers.ToListAsync();
-
-            if (providers.Any(p => p.Username == provider.Username || p.Email == provider.Email))
-            {
-                return BadRequest("Username or Email already exists");
-            }
-            _db.Providers.Add(provider);
-            await _db.SaveChangesAsync();
-            return Ok(provider);
-        }
 
         [HttpGet("login")]
         public async Task<ActionResult<List<Patient>>> LoginPatient()
