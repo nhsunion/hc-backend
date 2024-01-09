@@ -16,8 +16,5 @@ namespace hc_backend.Models
         public string Username { get; set; }
         [Required]
         public string Password { get; set; }
-        [Required]
-        [Compare("Password")]
-        public string ConfirmPassword { get; set; }
     }
 }

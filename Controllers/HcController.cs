@@ -38,17 +38,26 @@ namespace hc_backend.Controllers
         }
 
 
-        [HttpGet("login")]
-        public async Task<ActionResult<List<Patient>>> LoginPatient()
+        [HttpPost("login")]
+        public async Task<ActionResult<List<Patient>>> LoginPatient([FromBody] LoginRequest loginRequest)
         {
-            var patients = await _db.Patients.ToListAsync();
-            if (patients.Count == 0)
+            var patient = await _db.Patients.FirstOrDefaultAsync(p => p.Username == loginRequest.Username);
+            if (patient == null)
             {
-                return NotFound();
+                return BadRequest("Incorrect Username or Password");
             }
-            return Ok(patients);
-        }
 
+            var PasswordHasher = new PasswordHasher<Patient>();
+            var result = PasswordHasher.VerifyHashedPassword(patient, patient.Password, loginRequest.Password);
+            if (result == PasswordVerificationResult.Failed)
+            {
+                return BadRequest("Incorrect Username or Password");
+            }
+
+            var token = _authService.GenerateToken(patient);
+
+            return Ok(new { token });
+        }
     }
 
 }
