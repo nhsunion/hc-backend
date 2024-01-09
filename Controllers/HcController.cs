@@ -22,20 +22,34 @@ namespace hc_backend.Controllers
         {
             var patients = await _db.Patients.ToListAsync();
 
-            if (patients.Any(p => p.Username == patient.Username))
+            if (patients.Any(p => p.Username == patient.Username || p.Email == patient.Email))
             {
-                return BadRequest("");
+                return BadRequest("Username or Email already exists");
             }
             _db.Patients.Add(patient);
             await _db.SaveChangesAsync();
             return Ok(patient);
         }
 
+         [HttpPost("register")] 
+        public async Task<ActionResult> CreateProvider(Provider provider)
+        {
+            var providers = await _db.Providers.ToListAsync();
+
+            if (providers.Any(p => p.Username == provider.Username || p.Email == provider.Email))
+            {
+                return BadRequest("Username or Email already exists");
+            }
+            _db.Providers.Add(provider);
+            await _db.SaveChangesAsync();
+            return Ok(provider);
+        }
+
         [HttpGet("login")] 
-        public async Task<ActionResult<List<Patient>>> GetPatient()
+        public async Task<ActionResult<List<Patient>>> LoginPatient()
         {
             var patients = await _db.Patients.ToListAsync();
-            if (patients.Count == 0) // ToListAsync() will never return null
+            if (patients.Count == 0) 
             {
                 return NotFound();
             }
