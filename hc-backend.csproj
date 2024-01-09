@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>hc_backend</RootNamespace>
+    <UserSecretsId>27e52801-8fbe-43bc-a946-396180da0a2a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
