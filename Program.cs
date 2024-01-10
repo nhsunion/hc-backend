@@ -61,6 +61,8 @@ namespace hc_backend
 
             app.UseAuthorization();
 
+            app.UseCors(options => options.WithOrigins("https://localhost:3000").AllowAnyMethod().AllowAnyHeader());
+
             app.MapControllers();
 
             app.Run();

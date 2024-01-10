@@ -34,7 +34,7 @@ namespace hc_backend.Controllers
             _db.Patients.Add(patient);
             await _db.SaveChangesAsync();
 
-            return Ok(patient);
+            return Ok(new {patient.Id, patient.Username, patient.Email});
         }
 
 
