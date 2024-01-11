@@ -12,7 +12,7 @@ namespace hc_backend.Models
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
         public string? Phone { get; set; }
-        public string Address { get; set; }
+        public string? Address { get; set; }
         [Required(ErrorMessage = "Username is required")]
         [MinLength(3, ErrorMessage = "Username must be at least 3 characters long")]
         public string Username { get; set; }
