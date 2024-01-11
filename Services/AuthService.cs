@@ -16,7 +16,7 @@ public class AuthService
         _db = database;
     }
 
-    public string GenerateToken(Patient patient)
+    public string GenerateTokenPatient(Patient patient)
     {
         var claims = new[] {
             new Claim(ClaimTypes.NameIdentifier, patient.Id.ToString()),
@@ -37,5 +37,26 @@ public class AuthService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+    public string GenerateTokenProvider(Provider provider)
+    {
+        var claims = new[] {
+            new Claim(ClaimTypes.NameIdentifier, provider.Id.ToString()),
+            new Claim(ClaimTypes.Name, provider.Username),
+            new Claim(ClaimTypes.Email, provider.Email)
+        };
 
-} 
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(30),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+}
