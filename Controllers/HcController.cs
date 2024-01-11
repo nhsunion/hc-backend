@@ -34,7 +34,7 @@ namespace hc_backend.Controllers
             _db.Patients.Add(patient);
             await _db.SaveChangesAsync();
 
-            return Ok(new {patient.Id, patient.Username, patient.Email});
+            return Ok(new {patient.Username, patient.Email});
         }
 
 
@@ -56,7 +56,16 @@ namespace hc_backend.Controllers
 
             var token = _authService.GenerateToken(patient);
 
-            return Ok(new { token });
+            Response.Cookies.Append("jwt", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None, // frontend and backend are on different domains
+                Expires = DateTime.UtcNow.AddDays(7)
+                // TODO: Implement anti-forgery token to prevent CSRF attacks
+            });
+
+            return Ok();
         }
     }
 

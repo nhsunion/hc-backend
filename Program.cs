@@ -25,9 +25,22 @@ namespace hc_backend
                        ValidAudience = builder.Configuration["Jwt:Audience"],
                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
                    };
+                   //  add cookies here
+                   
                });
 
             builder.Services.AddScoped<AuthService>();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("NextCors", builder =>
+                {
+                    builder.WithOrigins("https://localhost:3000")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+                });
+            });
 
             // Get the environment name
             var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -61,7 +74,7 @@ namespace hc_backend
 
             app.UseAuthorization();
 
-            app.UseCors(options => options.WithOrigins("https://localhost:3000").AllowAnyMethod().AllowAnyHeader());
+            app.UseCors("NextCors");
 
             app.MapControllers();
 
