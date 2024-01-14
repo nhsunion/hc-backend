@@ -11,5 +11,6 @@ namespace hc_backend.Data
         }
         public DbSet<Provider> Providers { get; set; }
         public DbSet<Patient> Patients { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
     }
 }
