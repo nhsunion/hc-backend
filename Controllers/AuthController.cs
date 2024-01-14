@@ -1,6 +1,5 @@
 ﻿using hc_backend.Data;
 using hc_backend.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +8,12 @@ namespace hc_backend.Controllers
 {
     [ApiController]
     [Route("/api")]
-    public class HcController : Controller
+    public class AuthController : Controller
     {
         private readonly AppDbcontext _db;
         private readonly AuthService _authService;
 
-        public HcController(AppDbcontext database, AuthService authService)
+        public AuthController(AppDbcontext database, AuthService authService)
         {
             _db = database;
             _authService = authService;
