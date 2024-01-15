@@ -1,5 +1,6 @@
 using hc_backend.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace hc_backend.Controllers
 {
@@ -31,14 +32,34 @@ namespace hc_backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Appointment>> GetById(int id)
+        public async Task<ActionResult<AppointmentDTO>> GetById(int id)
         {
-            var appointment = await _db.Appointments.FindAsync(id);
+            var appointment = await _db.Appointments
+                .Include(a => a.Provider)
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(a => a.Id == id);
             if (appointment == null)
             {
                 return NotFound();
             }
-            return appointment;
+
+            var appointmentDto = new AppointmentDTO
+            {
+                Id = appointment.Id,
+                Date = appointment.Date,
+                ProviderId = appointment.ProviderId,
+                ProviderName = appointment.Provider.Name, 
+                // Provider must always exist
+                // Patient cannot book an appointment without a provider
+            };
+
+            if (appointment.Patient != null)
+            {
+                appointmentDto.PatientId = appointment.Patient.Id;
+                appointmentDto.PatientName = appointment.Patient.Name;
+            }
+
+            return appointmentDto;
         }
 
         [HttpPut("{id}")]
@@ -54,7 +75,6 @@ namespace hc_backend.Controllers
             appointment.ProviderId = appointmentDto.ProviderId;
             appointment.Date = appointmentDto.Date;
 
-            _db.Appointments.Update(appointment);
             await _db.SaveChangesAsync();
 
             return NoContent();
@@ -74,6 +94,5 @@ namespace hc_backend.Controllers
 
             return NoContent();
         }
-
     }
 }

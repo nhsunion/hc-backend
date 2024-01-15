@@ -5,8 +5,9 @@ public class AppointmentDTO
     public int Id { get; set; }
     [Required(ErrorMessage = "Date is required")]
     public DateTime Date { get; set; }
-    [Required(ErrorMessage = "Patient is required")]
-    public int PatientId { get; set; }
+    public int? PatientId { get; set; }
+    public string PatientName { get; set; }
     [Required(ErrorMessage = "Provider is required")]
     public int ProviderId { get; set; }
+    public string ProviderName { get; set; }
 }
