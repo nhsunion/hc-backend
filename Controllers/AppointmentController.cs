@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace hc_backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class AppointmentController : Controller
     {
@@ -15,7 +15,7 @@ namespace hc_backend.Controllers
             _db = database;
         }
 
-        [HttpPost]
+        [HttpPost("appointment")]
         public async Task<ActionResult<Appointment>> Create([FromBody] AppointmentDTO appointmentDto)
         {
             var appointment = new Appointment
