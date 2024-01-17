@@ -117,7 +117,17 @@ namespace hc_backend.Controllers
                 return BadRequest("Incorrect Username or Password");
             }
 
-            var token = _authService.GenerateTokenProvider(provider);
+            string? token = null;
+
+            try
+            {
+                token = _authService.GenerateTokenProvider(provider);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception during token generation: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
 
             Response.Cookies.Append("jwt", token, new CookieOptions
             {
