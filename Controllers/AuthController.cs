@@ -45,7 +45,7 @@ namespace hc_backend.Controllers
             return Ok(new { patient.Username, patient.Email });
         }
 
-         [HttpPost("register/provider")]
+        [HttpPost("register/provider")]
         public async Task<ActionResult> CreateProvider([FromBody] RegisterRequest registerRequest)
         {
             if (await _db.Providers.AnyAsync(p => p.Username == registerRequest.Username || p.Email == registerRequest.Email))
@@ -111,7 +111,7 @@ namespace hc_backend.Controllers
             return Ok();
         }
 
-         [HttpPost("login/provider")]
+        [HttpPost("login/provider")]
         public async Task<ActionResult<List<Patient>>> LoginProvider([FromBody] LoginRequest loginRequest)
         {
             var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == loginRequest.Username);
@@ -149,6 +149,73 @@ namespace hc_backend.Controllers
             });
 
             return Ok();
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<UserRole>> Login([FromBody] LoginRequest loginRequest)
+        {
+            var patient = await _db.Patients.FirstOrDefaultAsync(p => p.Username == loginRequest.Username);
+            var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == loginRequest.Username);
+
+            if (patient == null && provider == null)
+            {
+                return BadRequest("Incorrect Username or Password");
+            }
+
+            var PasswordHasher = new PasswordHasher<>();
+            PasswordVerificationResult result;
+
+            string? token = null;
+            string role;
+
+            if (patient != null)
+            {
+                result = PasswordHasher.VerifyHashedPassword(patient, patient.Password, loginRequest.Password);
+                role = "patient";
+            }
+            else
+            {
+                result = PasswordHasher.VerifyHashedPassword(provider, provider.Password, loginRequest.Password);
+                role = "provider";
+            }
+
+            if (result == PasswordVerificationResult.Failed)
+            {
+                return BadRequest("Incorrect Username or Password");
+            }
+
+            try
+            {
+                if (role == "patient")
+                {
+                    token = _authService.GenerateTokenPatient(patient);
+                }
+                else
+                {
+                    token = _authService.GenerateTokenProvider(provider);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception during token generation: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+
+            Response.Cookies.Append("jwt", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None, // frontend and backend are on different domains
+                Expires = DateTime.UtcNow.AddDays(7)
+                // TODO: Implement anti-forgery token to prevent CSRF attacks
+            });
+
+            return Ok(new UserRole { Role = role });
+        }
+
+        public class UserRole
+        {
+            public string Role { get; set; }
         }
     }
 
