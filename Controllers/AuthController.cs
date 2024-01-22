@@ -130,13 +130,36 @@ namespace hc_backend.Controllers
                 // TODO: Implement anti-forgery token to prevent CSRF attacks
             });
 
-            return Ok(new UserRole { Role = role });
+            return Ok(new UserRole { Role = role, Username = loginRequest.Username });
         }
 
-        public class UserRole
+        [HttpGet("current")]
+        public async Task<ActionResult<UserRole>> CurrentUser()
         {
-            public string Role { get; set; }
+            var username = User.Identity.Name;
+
+            var patient = await _db.Patients.FirstOrDefaultAsync(p => p.Username == username);
+            var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == username);
+
+            if (patient == null && provider == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            string role;
+
+            if (patient != null)
+            {
+                role = "patient";
+            }
+            else
+            {
+                role = "provider";
+            }
+
+            return Ok(new UserRole { Role = role, Username = username });
         }
+
     }
 
 }
