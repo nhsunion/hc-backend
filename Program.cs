@@ -25,8 +25,16 @@ namespace hc_backend
                        ValidAudience = builder.Configuration["Jwt:Audience"],
                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
                    };
-                   //  add cookies here
-                   
+                   // To retrieve Token from cookie
+                   options.Events = new JwtBearerEvents
+                   {
+                       OnMessageReceived = context =>
+                       {
+                           context.Token = context.Request.Cookies["jwt"];
+                           return Task.CompletedTask;
+                       }
+                   };
+
                });
 
             builder.Services.AddScoped<AuthService>();

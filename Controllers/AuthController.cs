@@ -135,6 +135,7 @@ namespace hc_backend.Controllers
             return Ok(new UserRole { Role = role, Username = loginRequest.Username });
         }
 
+        [Authorize]
         [HttpGet("user/current")]
         public async Task<ActionResult<UserRole>> CurrentUser()
         {
