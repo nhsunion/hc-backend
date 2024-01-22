@@ -1,5 +1,7 @@
-﻿using hc_backend.Data;
+﻿using System.Security.Claims;
+using hc_backend.Data;
 using hc_backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -133,11 +135,18 @@ namespace hc_backend.Controllers
             return Ok(new UserRole { Role = role, Username = loginRequest.Username });
         }
 
-        [HttpGet("current")]
+        [HttpGet("user/current")]
         public async Task<ActionResult<UserRole>> CurrentUser()
         {
-            var username = User.Identity.Name;
-
+            var username = HttpContext.User.FindFirstValue(ClaimTypes.Name);
+            if (username == null)
+            {
+                Console.WriteLine("User is null");
+            }
+            else
+            {
+                Console.WriteLine($"username: {username}");
+            }
             var patient = await _db.Patients.FirstOrDefaultAsync(p => p.Username == username);
             var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == username);
 
@@ -160,6 +169,7 @@ namespace hc_backend.Controllers
             return Ok(new UserRole { Role = role, Username = username });
         }
 
+     
     }
 
 }
