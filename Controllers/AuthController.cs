@@ -162,19 +162,19 @@ namespace hc_backend.Controllers
                 return BadRequest("Incorrect Username or Password");
             }
 
-            var PasswordHasher = new PasswordHasher<>();
             PasswordVerificationResult result;
-
             string? token = null;
             string role;
 
             if (patient != null)
             {
+                var PasswordHasher = new PasswordHasher<Patient>();
                 result = PasswordHasher.VerifyHashedPassword(patient, patient.Password, loginRequest.Password);
                 role = "patient";
             }
             else
             {
+                var PasswordHasher = new PasswordHasher<Provider>();
                 result = PasswordHasher.VerifyHashedPassword(provider, provider.Password, loginRequest.Password);
                 role = "provider";
             }
