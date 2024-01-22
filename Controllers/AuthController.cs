@@ -45,7 +45,7 @@ namespace hc_backend.Controllers
             return Ok(new { patient.Username, patient.Email });
         }
 
-         [HttpPost("register/provider")]
+        [HttpPost("register/provider")]
         public async Task<ActionResult> CreateProvider([FromBody] RegisterRequest registerRequest)
         {
             if (await _db.Providers.AnyAsync(p => p.Username == registerRequest.Username || p.Email == registerRequest.Email))
@@ -71,27 +71,49 @@ namespace hc_backend.Controllers
         }
 
 
-        [HttpPost("login/patient")]
-        public async Task<ActionResult<List<Patient>>> LoginPatient([FromBody] LoginRequest loginRequest)
+        [HttpPost("login")]
+        public async Task<ActionResult<UserRole>> Login([FromBody] LoginRequest loginRequest)
         {
             var patient = await _db.Patients.FirstOrDefaultAsync(p => p.Username == loginRequest.Username);
-            if (patient == null)
+            var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == loginRequest.Username);
+
+            if (patient == null && provider == null)
             {
                 return BadRequest("Incorrect Username or Password");
             }
 
-            var PasswordHasher = new PasswordHasher<Patient>();
-            var result = PasswordHasher.VerifyHashedPassword(patient, patient.Password, loginRequest.Password);
+            PasswordVerificationResult result;
+            string? token = null;
+            string role;
+
+            if (patient != null)
+            {
+                var PasswordHasher = new PasswordHasher<Patient>();
+                result = PasswordHasher.VerifyHashedPassword(patient, patient.Password, loginRequest.Password);
+                role = "patient";
+            }
+            else
+            {
+                var PasswordHasher = new PasswordHasher<Provider>();
+                result = PasswordHasher.VerifyHashedPassword(provider, provider.Password, loginRequest.Password);
+                role = "provider";
+            }
+
             if (result == PasswordVerificationResult.Failed)
             {
                 return BadRequest("Incorrect Username or Password");
             }
 
-            string? token = null;
-
             try
             {
-                token = token = _authService.GenerateTokenPatient(patient);
+                if (role == "patient")
+                {
+                    token = _authService.GenerateTokenPatient(patient);
+                }
+                else
+                {
+                    token = _authService.GenerateTokenProvider(provider);
+                }
             }
             catch (Exception ex)
             {
@@ -108,47 +130,12 @@ namespace hc_backend.Controllers
                 // TODO: Implement anti-forgery token to prevent CSRF attacks
             });
 
-            return Ok();
+            return Ok(new UserRole { Role = role });
         }
 
-         [HttpPost("login/provider")]
-        public async Task<ActionResult<List<Patient>>> LoginProvider([FromBody] LoginRequest loginRequest)
+        public class UserRole
         {
-            var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == loginRequest.Username);
-            if (provider == null)
-            {
-                return BadRequest("Incorrect Username or Password");
-            }
-
-            var PasswordHasher = new PasswordHasher<Provider>();
-            var result = PasswordHasher.VerifyHashedPassword(provider, provider.Password, loginRequest.Password);
-            if (result == PasswordVerificationResult.Failed)
-            {
-                return BadRequest("Incorrect Username or Password");
-            }
-
-            string? token = null;
-
-            try
-            {
-                token = _authService.GenerateTokenProvider(provider);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception during token generation: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-
-            Response.Cookies.Append("jwt", token, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None, // frontend and backend are on different domains
-                Expires = DateTime.UtcNow.AddDays(7)
-                // TODO: Implement anti-forgery token to prevent CSRF attacks
-            });
-
-            return Ok();
+            public string Role { get; set; }
         }
     }
 
