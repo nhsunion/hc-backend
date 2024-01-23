@@ -28,7 +28,7 @@ namespace hc_backend.Controllers
             _db.Appointments.Add(appointment);
             await _db.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = appointment.Id }, appointment);
+            return CreatedAtAction(nameof(GetAppointmentById), new { id = appointment.Id }, appointment);
         }
 
         [HttpGet("available")]
@@ -58,13 +58,13 @@ namespace hc_backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<AppointmentDTO>> GetById(int id)
+        public async Task<ActionResult<AppointmentDTO>> GetAppointmentById(int id)
         {
             var appointment = await _db.Appointments
                 .Include(a => a.Provider)
                 .Include(a => a.Patient)
                 .FirstOrDefaultAsync(a => a.Id == id);
-            if (appointment == null)
+            if (appointment is null)
             {
                 return NotFound();
             }
@@ -86,6 +86,27 @@ namespace hc_backend.Controllers
             }
 
             return appointmentDto;
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> BookAppointment([FromBody] AppointmentDTO appointmentDto)
+        {
+            var appointment = await _db.Appointments
+                .Include(a => a.Provider)
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(a => a.Id == appointmentDto.Id);
+
+            if (appointment is null)
+            {
+                return NotFound();
+            }
+
+            appointment.PatientId = appointmentDto.PatientId;
+
+            _db.Appointments.Update(appointment);
+            await _db.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
