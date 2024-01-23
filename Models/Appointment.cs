@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using hc_backend.Models;
 
-public class Appointment {
+public class Appointment
+{
+    [Required]
     public int Id { get; set; }
     [Required]
     public DateTime Date { get; set; }
