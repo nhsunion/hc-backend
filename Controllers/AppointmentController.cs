@@ -88,7 +88,7 @@ namespace hc_backend.Controllers
             return appointmentDto;
         }
 
-        [HttpPut]
+        [HttpPut("appointment")]
         public async Task<IActionResult> BookAppointment([FromBody] AppointmentDTO appointmentDto)
         {
             var appointment = await _db.Appointments
