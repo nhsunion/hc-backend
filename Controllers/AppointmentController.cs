@@ -10,13 +10,13 @@ namespace hc_backend.Controllers
     {
         private readonly AppDbcontext _db;
 
-        public AppointmentController(AppDbcontext database)
+        public AppointmentController(AppDbcontext db)
         {
-            _db = database;
+            _db = db;
         }
 
         [HttpPost("appointment")]
-        public async Task<ActionResult<Appointment>> Create([FromBody] AppointmentDTO appointmentDto)
+        public async Task<ActionResult<Appointment>> CreateAvailableAppointment([FromBody] AppointmentDTO appointmentDto)
         {
             var appointment = new Appointment
             {
@@ -28,17 +28,43 @@ namespace hc_backend.Controllers
             _db.Appointments.Add(appointment);
             await _db.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = appointment.Id }, appointment);
+            return CreatedAtAction(nameof(GetAppointmentById), new { id = appointment.Id }, appointment);
+        }
+
+        [HttpGet("available")]
+        public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAvailableAppointments()
+        {
+            var appointments = await _db.Appointments
+                            .Include(a => a.Provider)
+                            .Include(a => a.Patient)
+                            .Where(a => a.PatientId == null)
+                            .ToListAsync();
+
+            List<AppointmentDTO> appointmentDTOS = new();
+            foreach (var appointment in appointments)
+            {
+                appointmentDTOS.Add(new AppointmentDTO
+                {
+                    Id = appointment.Id,
+                    Date = appointment.Date,
+                    PatientId = null,
+                    PatientName = null,
+                    ProviderId = appointment.ProviderId,
+                    ProviderName = appointment.Provider.Name
+                });
+            }
+
+            return appointmentDTOS;
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<AppointmentDTO>> GetById(int id)
+        public async Task<ActionResult<AppointmentDTO>> GetAppointmentById(int id)
         {
             var appointment = await _db.Appointments
                 .Include(a => a.Provider)
                 .Include(a => a.Patient)
                 .FirstOrDefaultAsync(a => a.Id == id);
-            if (appointment == null)
+            if (appointment is null)
             {
                 return NotFound();
             }
@@ -62,34 +88,22 @@ namespace hc_backend.Controllers
             return appointmentDto;
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] AppointmentDTO appointmentDto)
+        [HttpPut("appointment")]
+        public async Task<IActionResult> BookAppointment([FromBody] AppointmentDTO appointmentDto)
         {
-            var appointment = await _db.Appointments.FindAsync(id);
-            if (appointment == null)
+            var appointment = await _db.Appointments
+                .Include(a => a.Provider)
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(a => a.Id == appointmentDto.Id);
+
+            if (appointment is null)
             {
                 return NotFound();
             }
 
             appointment.PatientId = appointmentDto.PatientId;
-            appointment.ProviderId = appointmentDto.ProviderId;
-            appointment.Date = appointmentDto.Date;
 
-            await _db.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
-        {
-            var appointment = await _db.Appointments.FindAsync(id);
-            if (appointment == null)
-            {
-                return NotFound();
-            }
-
-            _db.Appointments.Remove(appointment);
+            _db.Appointments.Update(appointment);
             await _db.SaveChangesAsync();
 
             return NoContent();

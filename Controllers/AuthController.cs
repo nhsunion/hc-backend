@@ -175,18 +175,21 @@ namespace hc_backend.Controllers
                 return BadRequest("User not found");
             }
 
+            int id = 0;
             string role;
 
             if (patient != null)
             {
                 role = "patient";
+                id = patient.Id;
             }
             else
             {
                 role = "provider";
+                id = provider.Id;
             }
 
-            return Ok(new UserRole { Role = role, Username = username });
+            return Ok(new UserRole { Id = id, Role = role, Username = username });
         }
 
      
