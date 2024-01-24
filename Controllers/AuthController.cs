@@ -135,6 +135,25 @@ namespace hc_backend.Controllers
             return Ok(new UserRole { Role = role, Username = loginRequest.Username });
         }
 
+              [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            if (Request.Cookies.ContainsKey("jwt"))
+            {
+                Response.Cookies.Append("jwt", "", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddDays(-1)
+                });
+
+                return Ok("Logged out successfully.");
+            }
+
+            return BadRequest("No active session found.");
+        }
+
         [Authorize]
         [HttpGet("user/current")]
         public async Task<ActionResult<UserRole>> CurrentUser()
