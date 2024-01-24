@@ -135,45 +135,55 @@ namespace hc_backend.Controllers
             return Ok(new UserRole { Role = role, Username = loginRequest.Username });
         }
 
-        [Authorize]
-        [HttpGet("user/current")]
-        public async Task<ActionResult<UserRole>> CurrentUser()
+        [HttpPost("logout")]
+        public IActionResult Logout()
         {
-            var username = HttpContext.User.FindFirstValue(ClaimTypes.Name);
-            if (username == null)
-            {
-                Console.WriteLine("User is null");
-            }
-            else
-            {
-                Console.WriteLine($"username: {username}");
-            }
-            var patient = await _db.Patients.FirstOrDefaultAsync(p => p.Username == username);
-            var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == username);
+            // Clear the JWT cookie
+            Response.Cookies.Delete("jwt");
 
-            if (patient == null && provider == null)
-            {
-                return BadRequest("User not found");
-            }
-
-            int id = 0;
-            string role;
-
-            if (patient != null)
-            {
-                role = "patient";
-                id = patient.Id;
-            }
-            else
-            {
-                role = "provider";
-                id = provider.Id;
-            }
-
-            return Ok(new UserRole { Id = id, Role = role, Username = username });
+            return Ok(new { message = "Logged out" });
         }
 
-     
+          
+    [Authorize]
+    [HttpGet("user/current")]
+    public async Task<ActionResult<UserRole>> CurrentUser()
+    {
+        var username = HttpContext.User.FindFirstValue(ClaimTypes.Name);
+        if (username == null)
+        {
+            Console.WriteLine("User is null");
+        }
+        else
+        {
+            Console.WriteLine($"username: {username}");
+        }
+        var patient = await _db.Patients.FirstOrDefaultAsync(p => p.Username == username);
+        var provider = await _db.Providers.FirstOrDefaultAsync(p => p.Username == username);
+
+        if (patient == null && provider == null)
+        {
+            return BadRequest("User not found");
+        }
+
+        int id = 0;
+        string role;
+
+        if (patient != null)
+        {
+            role = "patient";
+            id = patient.Id;
+        }
+        else
+        {
+            role = "provider";
+            id = provider.Id;
+        }
+
+        return Ok(new UserRole { Id = id, Role = role, Username = username });
     }
+
+
+}
 
 }
